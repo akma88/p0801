@@ -1,30 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 import 'package:p0801/calculator.dart';
 import 'package:p0801/operation.dart';
+import 'package:p0801/service/number_api_service.dart';
 
 class OperationWidget extends StatefulWidget {
   final Operation operation;
   final Calculator calculator;
 
   const OperationWidget({
-    super.key,
+    Key? key,
     required this.operation,
     required this.calculator,
-  });
+  }) : super(key: key);
 
   @override
   State<OperationWidget> createState() => _OperationWidgetState();
 }
 
 class _OperationWidgetState extends State<OperationWidget> {
+  late NumberApiService _numberApiService;
+
   final _topTextController = TextEditingController();
   final _bottomTextController = TextEditingController();
 
   String _operationResult = '';
+  final String _resultAfterAnimation = '';
+  String numberInfo = '';
 
   @override
   void initState() {
+    _numberApiService = NumberApiService(client: http.Client());
     _topTextController.addListener(_getResult);
     _bottomTextController.addListener(_getResult);
     super.initState();
@@ -40,26 +46,71 @@ class _OperationWidgetState extends State<OperationWidget> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('Operation', style: TextStyle(fontSize: 20)),
-      leading: Icon(Icons.access_time_outlined),
+      title: Text(
+        widget.operation.descriptionOperation,
+        style: const TextStyle(fontSize: 20),
+      ),
+      leading: widget.operation.iconOperation,
       subtitle: Column(
         children: [
           TextField(
+            key: Key('textField_top_${widget.operation.descriptionOperation}'),
             controller: _topTextController,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(hintText: 'enter 1st number'),
+            decoration: const InputDecoration(hintText: 'Enter 1st number'),
           ),
           TextField(
+            key: Key(
+              'textField_bottom_${widget.operation.descriptionOperation}',
+            ),
             controller: _bottomTextController,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(hintText: 'enter 1st number'),
+            decoration: const InputDecoration(hintText: 'Enter 2nd number'),
           ),
-          SizedBox(height: 20),
-
+          const SizedBox(height: 20),
           Text(
-            "Result: $_operationResult",
+            'Result: $_operationResult',
             style: Theme.of(context).textTheme.titleLarge,
           ),
+          const Divider(),
+          Text(numberInfo, style: const TextStyle(fontSize: 20)),
+
+          ElevatedButton(
+            key: Key(
+              'elevated_button_${widget.operation.descriptionOperation}',
+            ),
+            child: const Text('Get Number Info'),
+            onPressed: () async {
+              if (_operationResult.isNotEmpty) {
+                var value = await _numberApiService.getNumberFact(
+                  (double.parse(_operationResult)).round(),
+                );
+
+                setState(() {
+                  numberInfo = value.text;
+                });
+              }
+            },
+          ),
+
+          // AnimatedContainer(
+          //   padding: const EdgeInsets.all(8),
+          //   duration: const Duration(milliseconds: 1000),
+          //   onEnd: () {
+          //     setState(() {
+          //       _resultAfterAnimation = _operationResult.toString();
+          //     });
+          //   },
+          //   color: _operationResult.isEmpty ? Colors.transparent : Colors.green,
+          //   curve: Curves.easeInOut,
+          //   child: Text(
+          //     _resultAfterAnimation.isNotEmpty
+          //         ? 'Result: $_resultAfterAnimation'
+          //         : 'Result: ',
+          //     style: Theme.of(context).textTheme.bodyText1,
+          //     textAlign: TextAlign.end,
+          //   ),
+          // ),
         ],
       ),
     );
