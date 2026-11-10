@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:p0801/calculator.dart';
+import 'package:p0801/fib.dart';
 import 'package:p0801/operation.dart';
 import 'package:p0801/operation_widget.dart';
+import 'package:p0801/power_of_two.dart';
 
 void main() {
   runApp(const CalculatorApp());
@@ -21,6 +23,10 @@ class CalculatorApp extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               children: [
+                Fib(calculator: calculator),
+                const Divider(),
+                PowerOfTwo(calculator: calculator),
+                const Divider(),
                 OperationWidget(
                   calculator: calculator,
                   operation: Operation.add,
